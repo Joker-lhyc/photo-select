@@ -194,6 +194,7 @@
         
         NSMutableArray *urlArray = [[NSMutableArray alloc] init];
         
+        //保存图片到应用的沙盒路径下
         for (int i = 0; i < array.count; i++) {
             
             NSDictionary *dict = array[i];
