@@ -206,30 +206,17 @@
             NSData *mData = nil;
             mData = UIImageJPEGRepresentation(originImage, 1.0);
             
+            //产生唯一标识
+            NSString *pictureName = [[[NSProcessInfo processInfo] globallyUniqueString] stringByAppendingString:@".png"];
+            
             //保存图片 Documents为指定路径
-            NSFileManager *fileManager = [NSFileManager defaultManager];
-            
-            //路径以时间为标识
-            NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init ];
-            [dateFormatter setDateFormat:@"MM-dd HH:mm:ss"];
-            NSDate *now = [NSDate date];
-            NSString *datestring = [dateFormatter stringFromDate:now];
-            NSLog(@"当前标志:%@",datestring);
-            
-            //保存
-            BOOL isSaved = [fileManager createFileAtPath:[_path stringByAppendingString:[NSString stringWithFormat:@"/%@%d",datestring,i]] contents:mData attributes:nil];
+            BOOL isSaved = [[NSFileManager defaultManager] createFileAtPath:[_path stringByAppendingString:pictureName] contents:mData attributes:nil];
             NSLog(@"图片保存状态：%d",isSaved);
-            
-            //将路径保存到 NSUserDefaults 中
-            NSMutableArray *picArray = [[NSMutableArray alloc]init];
-            if ([[NSUserDefaults standardUserDefaults] objectForKey:_fileName]==nil) {
-                [[NSUserDefaults standardUserDefaults] setObject:picArray forKey:_fileName];
-            }
             
             //新建临时数组来接收NSUserDefaults数据
             NSArray *tempNoteArray = [[NSUserDefaults standardUserDefaults] objectForKey:_fileName];
             NSMutableArray *mutableNoteArray = [tempNoteArray mutableCopy];
-            NSString *textstring = [NSString stringWithFormat:@"/%@%d",datestring,i];
+            NSString *textstring = pictureName;
             [mutableNoteArray insertObject:textstring atIndex:[mutableNoteArray count]];
             [[NSUserDefaults standardUserDefaults] setObject:mutableNoteArray forKey:_fileName];
             

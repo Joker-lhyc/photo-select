@@ -190,6 +190,12 @@
     //添加到负责数组中
     [mutableNoteArray insertObject:textstring atIndex:0 ];
     [[NSUserDefaults standardUserDefaults] setObject:mutableNoteArray forKey:@"Album"];
+    
+    //将相册数组保存到 NSUserDefaults 中
+    NSMutableArray *picArray = [[NSMutableArray alloc]init];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:textstring]==nil) {
+        [[NSUserDefaults standardUserDefaults] setObject:picArray forKey:textstring];
+    }
 }
 /*!
  @abstract 取消响应者
