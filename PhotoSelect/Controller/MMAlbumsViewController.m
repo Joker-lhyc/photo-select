@@ -181,6 +181,42 @@
     [self presentViewController:alertController animated:YES completion:nil];
 }
 
+#pragma mark - 相机
+/*!
+ @abstract 相册收回后添加图片数据到本地
+ */
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info
+{
+    //获取图片
+    UIImage *originImage = (UIImage *)info[UIImagePickerControllerOriginalImage];
+    NSData *mData = nil;
+    mData = UIImageJPEGRepresentation(originImage, 1.0);
+    [picker dismissViewControllerAnimated:YES completion:nil];
+    
+    //保存图片 Documents是指定路径
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    
+    //产生唯一标识
+    NSString *pictureName = [[[NSProcessInfo processInfo] globallyUniqueString] stringByAppendingString:@".png"];
+    
+    //保存
+    BOOL isSaved = [fileManager createFileAtPath:[_path stringByAppendingString:pictureName] contents:mData attributes:nil];
+    NSLog(@"图片保存状态：%d",isSaved);
+    
+    //将路径保存到 NSUserDefaults 中
+    NSMutableArray *picArray = [[NSMutableArray alloc]init];
+    if ([[NSUserDefaults standardUserDefaults] objectForKey:_fileName]==nil) {
+        [[NSUserDefaults standardUserDefaults] setObject:picArray forKey:_fileName];
+    }
+    
+    //新建临时数组来接收NSUserDefaults数据
+    NSArray *tempNoteArray = [[NSUserDefaults standardUserDefaults] objectForKey:_fileName];
+    NSMutableArray *mutableNoteArray = [tempNoteArray mutableCopy];
+    [mutableNoteArray insertObject:pictureName atIndex:[mutableNoteArray count]];
+    [[NSUserDefaults standardUserDefaults] setObject:mutableNoteArray forKey:_fileName];
+    
+}
+
 
 #pragma mark - 多图添加
 -(void)selectImage{

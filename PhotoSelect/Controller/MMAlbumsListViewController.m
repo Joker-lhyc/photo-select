@@ -134,6 +134,7 @@
         cell.nameLable.text   = @"Trash";
         cell.numberLable.text = [NSString stringWithFormat:@"%lu photos",(unsigned long)array.count];
         cell.coverPhoto.image = [UIImage imageNamed:@"trash"];
+
         return cell;
     }
     
