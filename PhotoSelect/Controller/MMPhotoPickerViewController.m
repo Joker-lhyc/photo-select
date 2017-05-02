@@ -200,10 +200,26 @@
     if (_isAlubSeclect == YES) {
         
         self.photoArray = [self.datas getPhotoAssets:_fetch];
+        NSMutableArray *array = [[NSMutableArray alloc]  init];
+        for (int i = 0; i < _photoArray.count ; i++) {
+            
+            [array addObject:_photoArray[_photoArray.count - 1 - i]];
+            
+        }
+        [self.photoArray removeAllObjects];
+        self.photoArray  = [NSMutableArray arrayWithArray:array];
         [self refreshTotalNumLabelData:_photoArray.count];
         
     }else{
         self.photoArray = [self.datas getPhotoAssets:[self.datas getCameraRollFetchResul]];
+        NSMutableArray *array = [[NSMutableArray alloc]  init];
+        for (int i = 0; i < _photoArray.count ; i++) {
+            
+            [array addObject:_photoArray[_photoArray.count - 1 - i]];
+            
+        }
+        [self.photoArray removeAllObjects];
+        self.photoArray  = [NSMutableArray arrayWithArray:array];
         [self refreshTotalNumLabelData:_photoArray.count];
     }
 }
