@@ -12,6 +12,8 @@
 @interface MMPhotoListViewController ()<UIScrollViewDelegate>
 @property (nonatomic,strong) UIScrollView *photoScrollView;
 @property (nonatomic,strong) UIView *bottomView;
+@property (nonatomic,strong) UIScrollView *plusScrollView;
+@property (nonatomic,strong) UIImageView *plusView;
 
 @end
 
@@ -25,13 +27,116 @@
     
     //加载界面
     [self makeUI];
+    //加载大图
+    [self makePlus];
     //加载底部按钮
     [self makeBottomView];
+    
+    
+}
+
+#pragma mark - 图片放大
+- (void)makePlus
+{
+    //滑动展示View
+    _plusScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, DE_UISCREEN_WIDTH, DE_UISCREEN_HEIGHT)];
+    _plusScrollView.bounces  = YES;
+    _plusScrollView.delegate = self;
+    _plusScrollView.showsHorizontalScrollIndicator = YES;
+    _plusScrollView.showsVerticalScrollIndicator   = YES;
+    _plusScrollView.maximumZoomScale=2.0;
+    
+    //图片View
+    _plusView = [[UIImageView alloc] init];
+    _plusView.userInteractionEnabled = YES;
+    _plusView.contentMode = UIViewContentModeScaleAspectFit;
+    
+    //添加双击返回手势
+    UITapGestureRecognizer *doubleTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(viewHidden)];
+    [doubleTapGesture setNumberOfTapsRequired:2];
+    [_plusScrollView addGestureRecognizer:doubleTapGesture];
+}
+- (void)handleDoubleTap:(UIGestureRecognizer *)gesture
+{
+    
+    if (gesture.state == UIGestureRecognizerStateEnded) {
+        
+        _plusScrollView.backgroundColor = [UIColor clearColor];
+        
+        [self.navigationController.view addSubview:_plusScrollView];
+        
+        UIImage *image = [UIImage imageWithContentsOfFile:[_path stringByAppendingString:self.photoArray[_number]]];
+        
+        _plusView = [[UIImageView alloc] initWithImage:image];
+        
+        _plusScrollView.contentSize = CGSizeMake(_plusView.frame.size.width , _plusView.frame.size.height);
+        
+        [_plusScrollView addSubview:_plusView];
+        
+        [self.navigationController.view addSubview:_plusScrollView];
+        
+        CGFloat minScale00 = DE_UISCREEN_WIDTH / _plusView.frame.size.width;
+        
+        CGFloat minScale01 = DE_UISCREEN_HEIGHT / _plusView.frame.size.height;
+        
+        _plusScrollView.minimumZoomScale = minScale00 > minScale01 ? minScale00 : minScale01;
+        
+        
+        CGFloat cgWidth = _plusView.frame.size.width;
+        
+        CGFloat cgHeight = _plusView.frame.size.height;
+        
+        _plusView.frame = CGRectMake(DE_UISCREEN_WIDTH*0.6, DE_UISCREEN_HEIGHT*0.6, 1, 1);
+        
+        [UIView animateWithDuration:0.3 animations:^{
+            
+            _plusView.frame  = CGRectMake(0, 0, cgWidth, cgHeight);
+            
+        }];
+        
+        double delayInSeconds = 0.5;
+        
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+        
+        dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+            
+            _plusScrollView.backgroundColor = [UIColor whiteColor];
+        });
+        
+        
+    }
+}
+
+- (void)viewHidden
+{
+    _plusView.image = nil;
+    [_plusScrollView removeFromSuperview];
+}
+
+-(UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
+{
+    return _plusView;
+}
+
+- (void)scrollViewDidZoom:(UIScrollView *)scrollView
+{
+    if (_plusView.frame.size.width <= DE_UISCREEN_WIDTH * 0.65 || _plusView.frame.size.height <= DE_UISCREEN_HEIGHT * 0.65) {
+        
+        [self viewHidden];
+    }
 }
 #pragma mark - 加载UI界面
 - (void)makeUI
 {
-    //取消自动适应
+    
+    UITapGestureRecognizer *doubleTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTap:)];
+    [doubleTapGesture setNumberOfTapsRequired:2];
+    
+    [self.view addGestureRecognizer:doubleTapGesture];
+    
+    UIPinchGestureRecognizer *pinchTapGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTap:)];
+    [self.view addGestureRecognizer:pinchTapGesture];
+
     self.automaticallyAdjustsScrollViewInsets = NO;
     
     //滑动展示View
@@ -136,9 +241,13 @@
  @abstract 获取当前页数
  */
 - (void)scrollViewDidScroll:(UIScrollView *)sender {
-    // 得到每页宽度
+    
+    if (sender == _plusScrollView) {
+        return;
+    }
+    
     CGFloat pageWidth = sender.frame.size.width;
-    // 根据当前的x坐标和页宽度计算出当前页数
+
     _number = floor((sender.contentOffset.x - pageWidth / 2) / pageWidth) + 1;
     
     self.title = [NSString stringWithFormat:@"%d of %d",_number + 1,self.photoArray.count];
