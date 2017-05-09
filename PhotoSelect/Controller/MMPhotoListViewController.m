@@ -38,6 +38,13 @@
 #pragma mark - 图片放大
 - (void)makePlus
 {
+    UITapGestureRecognizer *doubleTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTap:)];
+    [doubleTapGesture setNumberOfTapsRequired:2];
+    [self.view addGestureRecognizer:doubleTapGesture];
+    
+    UIPinchGestureRecognizer *pinchTapGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTap:)];
+    [self.view addGestureRecognizer:pinchTapGesture];
+    
     //滑动展示View
     _plusScrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, DE_UISCREEN_WIDTH, DE_UISCREEN_HEIGHT)];
     _plusScrollView.bounces  = YES;
@@ -51,11 +58,17 @@
     _plusView.userInteractionEnabled = YES;
     _plusView.contentMode = UIViewContentModeScaleAspectFit;
     
+    
     //添加双击返回手势
-    UITapGestureRecognizer *doubleTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(viewHidden)];
-    [doubleTapGesture setNumberOfTapsRequired:2];
-    [_plusScrollView addGestureRecognizer:doubleTapGesture];
+    UITapGestureRecognizer *backTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(viewHidden)];
+    [backTapGesture setNumberOfTapsRequired:2];
+    [_plusScrollView addGestureRecognizer:backTapGesture];
 }
+/**
+ 双击 或 缩放后放大图片
+ 
+ @param gesture 返回响应手势
+ */
 - (void)handleDoubleTap:(UIGestureRecognizer *)gesture
 {
     
@@ -128,15 +141,6 @@
 #pragma mark - 加载UI界面
 - (void)makeUI
 {
-    
-    UITapGestureRecognizer *doubleTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTap:)];
-    [doubleTapGesture setNumberOfTapsRequired:2];
-    
-    [self.view addGestureRecognizer:doubleTapGesture];
-    
-    UIPinchGestureRecognizer *pinchTapGesture = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTap:)];
-    [self.view addGestureRecognizer:pinchTapGesture];
-
     self.automaticallyAdjustsScrollViewInsets = NO;
     
     //滑动展示View

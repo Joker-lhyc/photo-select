@@ -57,10 +57,10 @@
         layout.scrollDirection = UICollectionViewScrollDirectionVertical;
         
         _photoCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 64, DE_UISCREEN_WIDTH, DE_UISCREEN_HEIGHT - 64) collectionViewLayout:layout];
-        _photoCollectionView.delegate = self;
+        _photoCollectionView.delegate   = self;
         _photoCollectionView.dataSource = self;
         _photoCollectionView.showsVerticalScrollIndicator = NO;
-        _photoCollectionView.bounces = NO;
+        _photoCollectionView.bounces = YES;
         _photoCollectionView.backgroundColor = [UIColor whiteColor];
         [self.view addSubview:_photoCollectionView];
         
