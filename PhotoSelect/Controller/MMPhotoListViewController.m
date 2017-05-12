@@ -101,11 +101,13 @@
         
         _plusView.frame = CGRectMake(DE_UISCREEN_WIDTH*0.6, DE_UISCREEN_HEIGHT*0.6, 1, 1);
         
-        [UIView animateWithDuration:0.3 animations:^{
-            
+//        [UIView animateWithDuration:0.3 animations:^{
+        
             _plusView.frame  = CGRectMake(0, 0, cgWidth, cgHeight);
             
-        }];
+//        }];
+        
+        [_plusScrollView setZoomScale:minScale00 > minScale01 ? minScale00 : minScale01];
         
         double delayInSeconds = 0.5;
         
@@ -258,6 +260,89 @@
 }
 
 #pragma mark - 相片操作
+/*!
+ @abstract 底部按钮点击事件
+ */
+- (void)buttonClick:(UIButton *)button
+{
+    if (button.tag == 100) {//保存
+        
+        [self savePhoto];
+        
+    }else if (button.tag == 101) {//后退
+        
+        [self backPhoto];
+        
+    }else if (button.tag == 102) {//前进
+        
+        [self morePhoto];
+        
+    }else if (button.tag == 103) {//删除
+        
+        [self deletePhoto];
+    }
+    
+}
+
+/*!
+ @abstract 保存指定照片弹框
+ */
+- (void)savePhoto
+{
+    //创建Alert控制器
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Remind" message:@"Do you want to save this photos to the album?" preferredStyle:UIAlertControllerStyleAlert];
+    
+    //创建 Alert.
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {        }];
+    
+    UIAlertAction *deleteAction = [UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        NSString *name  = [NSString stringWithFormat:@"%@",self.photoArray[_number]];
+        
+        [self loadImageFinished:[UIImage imageWithContentsOfFile:[_path stringByAppendingString:name]]];
+    }];
+    
+    //添加 actions.
+    [alertController addAction:cancelAction];
+    [alertController addAction:deleteAction];
+    [self presentViewController:alertController animated:YES completion:nil];
+}
+/*!
+ @abstract 保存指定照片方法
+ */
+- (void)loadImageFinished:(UIImage *)image
+{
+    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+        
+        //写入图片到相册
+        PHAssetChangeRequest *req = [PHAssetChangeRequest creationRequestForAssetFromImage:image];
+        NSLog(@"%@",req);
+        
+    } completionHandler:^(BOOL success, NSError * _Nullable error) {
+        
+        NSLog(@"success = %d, error = %@", success, error);
+    }];
+}
+
+
+/*!
+ @abstract 上一张图片
+ */
+- (void)backPhoto
+{
+    if (_number == 0) return;
+    CGPoint position = CGPointMake(DE_UISCREEN_WIDTH * _number - DE_UISCREEN_WIDTH, 0);
+    [_photoScrollView setContentOffset:position animated:YES];
+}
+
+/*!
+ @abstract 下一张图片
+ */
+- (void)morePhoto
+{
+    if (_number == self.photoArray.count - 1) return;
+    CGPoint position = CGPointMake(DE_UISCREEN_WIDTH * _number + DE_UISCREEN_WIDTH, 0);
+    [_photoScrollView setContentOffset:position animated:YES];
+}
 
 /*!
  @abstract 删除指定照片弹框
@@ -271,7 +356,15 @@
     UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {        }];
     
     UIAlertAction *deleteAction = [UIAlertAction actionWithTitle:@"Delete" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-        [self delPhoto];
+        
+        if ([_name isEqualToString:@"Album/Trash"]) {
+            
+            [self delete];
+        }
+        else
+        {
+            [self delPhoto];
+        }
     }];
     
     //添加 actions.
@@ -324,88 +417,35 @@
     
 }
 
-/*!
- @abstract 上一张图片
- */
-- (void)backPhoto
+- (void)delete
 {
-    if (_number == 0) return;
-    CGPoint position = CGPointMake(DE_UISCREEN_WIDTH * _number - DE_UISCREEN_WIDTH, 0);
-    [_photoScrollView setContentOffset:position animated:YES];
+    //删除文件以及路径
+    NSString *path = [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents/Albums"] stringByAppendingPathComponent:@"Trash"];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    
+    NSMutableArray *nameArray = [[NSUserDefaults standardUserDefaults] objectForKey:_name];
+    
+    NSString *name = [NSString stringWithFormat:@"%@",nameArray[_number]];
+    
+    //删除
+    BOOL isDelete = [fileManager removeItemAtPath:[path stringByAppendingString:name] error:nil];
+    NSLog(@"删除%d",isDelete);
+    
+    //在垃圾桶数组中删除
+    NSMutableArray *array = [[NSUserDefaults standardUserDefaults] objectForKey:_name];
+    
+    NSMutableArray *mutablearray = [array mutableCopy];
+    
+    [mutablearray removeObjectAtIndex:_number];
+    
+    [[NSUserDefaults standardUserDefaults] setObject:mutablearray forKey:_name];
+    
+    [self scrollViewReload];
 }
 
-/*!
- @abstract 下一张图片
- */
-- (void)morePhoto
-{
-    if (_number == self.photoArray.count - 1) return;
-    CGPoint position = CGPointMake(DE_UISCREEN_WIDTH * _number + DE_UISCREEN_WIDTH, 0);
-    [_photoScrollView setContentOffset:position animated:YES];
-}
 
-/*!
- @abstract 保存指定照片弹框
- */
-- (void)savePhoto
-{
-    //创建Alert控制器
-    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Remind" message:@"Do you want to save this photos to the album?" preferredStyle:UIAlertControllerStyleAlert];
-    
-    //创建 Alert.
-    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {        }];
-    
-    UIAlertAction *deleteAction = [UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-        NSString *name  = [NSString stringWithFormat:@"%@",self.photoArray[_number]];
-        
-        [self loadImageFinished:[UIImage imageWithContentsOfFile:[_path stringByAppendingString:name]]];
-    }];
-    
-    //添加 actions.
-    [alertController addAction:cancelAction];
-    [alertController addAction:deleteAction];
-    [self presentViewController:alertController animated:YES completion:nil];
-}
-/*!
- @abstract 保存指定照片方法
- */
-- (void)loadImageFinished:(UIImage *)image
-{
-    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-        
-        //写入图片到相册
-        PHAssetChangeRequest *req = [PHAssetChangeRequest creationRequestForAssetFromImage:image];
-        NSLog(@"%@",req);
-        
-    } completionHandler:^(BOOL success, NSError * _Nullable error) {
-        
-        NSLog(@"success = %d, error = %@", success, error);
-    }];
-}
 
-/*!
- @abstract 底部按钮点击事件
- */
-- (void)buttonClick:(UIButton *)button
-{
-    if (button.tag == 100) {//保存
-        
-        [self savePhoto];
-        
-    }else if (button.tag == 101) {//后退
-        
-        [self backPhoto];
-        
-    }else if (button.tag == 102) {//前进
-        
-        [self morePhoto];
-        
-    }else if (button.tag == 103) {//删除
-        
-        [self deletePhoto];
-    }
-    
-}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
