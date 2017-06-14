@@ -10,10 +10,13 @@
 #import <Photos/Photos.h>
 
 @interface MMPhotoListViewController ()<UIScrollViewDelegate>
+//显示相册序列
 @property (nonatomic,strong) UIScrollView *photoScrollView;
 @property (nonatomic,strong) UIView *bottomView;
+//显示单张缩放图
 @property (nonatomic,strong) UIScrollView *plusScrollView;
 @property (nonatomic,strong) UIImageView *plusView;
+@property (nonatomic,strong) UIView *blackView;
 
 @end
 
@@ -63,7 +66,10 @@
     UITapGestureRecognizer *backTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(viewHidden)];
     [backTapGesture setNumberOfTapsRequired:2];
     [_plusScrollView addGestureRecognizer:backTapGesture];
+
+    _blackView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, DE_UISCREEN_WIDTH, DE_UISCREEN_HEIGHT)];
 }
+
 /**
  双击 或 缩放后放大图片
  
@@ -76,7 +82,13 @@
         
         _plusScrollView.backgroundColor = [UIColor clearColor];
         
-        [self.navigationController.view addSubview:_plusScrollView];
+        _plusScrollView.frame = CGRectMake(DE_UISCREEN_WIDTH * 0.5, DE_UISCREEN_HEIGHT * 0.5, 0, 0);
+        
+        _plusScrollView.alpha = 1;
+        
+        [self.navigationController.view addSubview:_blackView];
+        
+        [_blackView addSubview:_plusScrollView];
         
         UIImage *image = [UIImage imageWithContentsOfFile:[_path stringByAppendingString:self.photoArray[_number]]];
         
@@ -95,37 +107,29 @@
         _plusScrollView.minimumZoomScale = minScale00 > minScale01 ? minScale00 : minScale01;
         
         
-        CGFloat cgWidth = _plusView.frame.size.width;
+        CGFloat cgWidth  = _plusView.frame.size.width;
         
         CGFloat cgHeight = _plusView.frame.size.height;
         
-        _plusView.frame = CGRectMake(DE_UISCREEN_WIDTH*0.6, DE_UISCREEN_HEIGHT*0.6, 1, 1);
+        _plusView.frame  = CGRectMake(0, 0, cgWidth, cgHeight);
         
-//        [UIView animateWithDuration:0.3 animations:^{
-        
-            _plusView.frame  = CGRectMake(0, 0, cgWidth, cgHeight);
+        [UIView animateWithDuration:0.3 animations:^{
             
-//        }];
-        
+            _plusScrollView.frame = CGRectMake(0, 0, DE_UISCREEN_WIDTH, DE_UISCREEN_HEIGHT);
+            
+        }];
         [_plusScrollView setZoomScale:minScale00 > minScale01 ? minScale00 : minScale01];
         
-        double delayInSeconds = 0.5;
-        
-        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC));
         
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
             
-            _plusScrollView.backgroundColor = [UIColor whiteColor];
+            _plusScrollView.backgroundColor = [UIColor blackColor];
+            _blackView.backgroundColor = [UIColor blackColor];
+            
         });
         
-        
     }
-}
-
-- (void)viewHidden
-{
-    _plusView.image = nil;
-    [_plusScrollView removeFromSuperview];
 }
 
 -(UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
@@ -139,6 +143,26 @@
         
         [self viewHidden];
     }
+}
+
+- (void)viewHidden
+{
+    
+    [UIView animateWithDuration:0.4 animations:^{
+        
+        _plusScrollView.frame = CGRectMake(DE_UISCREEN_WIDTH * 0.5, DE_UISCREEN_HEIGHT * 0.5, 0, 0);
+        _plusScrollView.alpha = 0.01;
+        _blackView.backgroundColor = [UIColor clearColor];
+        
+    } completion:^(BOOL finished) {
+        
+        _plusView.image = nil;
+        [_plusView removeFromSuperview];
+        [_plusScrollView removeFromSuperview];
+        [_blackView removeFromSuperview];
+        
+    }];
+    
 }
 #pragma mark - 加载UI界面
 - (void)makeUI
@@ -248,9 +272,7 @@
  */
 - (void)scrollViewDidScroll:(UIScrollView *)sender {
     
-    if (sender == _plusScrollView) {
-        return;
-    }
+    if (sender == _plusScrollView) return;
     
     CGFloat pageWidth = sender.frame.size.width;
 

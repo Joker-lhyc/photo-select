@@ -23,7 +23,7 @@
 
 
 /**
- <#Description#>
+ Description
  */
 @property (assign, nonatomic) BOOL isAlubSeclect;
 
