@@ -140,7 +140,7 @@
     
     //读取并展示相册内容
     NSMutableArray *array = [[NSUserDefaults standardUserDefaults] objectForKey:albumsArray[indexPath.row]];
-    NSString *name = [NSString stringWithFormat:@"%@",[array lastObject]];
+    NSString *name = [NSString stringWithFormat:@"%@",[array firstObject]];
     NSString *path = [[NSHomeDirectory() stringByAppendingPathComponent:@"Documents/Albums"] stringByAppendingPathComponent:albumsArray[indexPath.row]];
     cell.nameLable.text   = albumsArray[indexPath.row];
     cell.numberLable.text = [NSString stringWithFormat:@"%lu photos",(unsigned long)array.count];

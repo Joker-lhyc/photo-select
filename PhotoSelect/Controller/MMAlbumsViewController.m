@@ -253,7 +253,7 @@
             NSArray *tempNoteArray = [[NSUserDefaults standardUserDefaults] objectForKey:_fileName];
             NSMutableArray *mutableNoteArray = [tempNoteArray mutableCopy];
             NSString *textstring = pictureName;
-            [mutableNoteArray insertObject:textstring atIndex:[mutableNoteArray count]];
+            [mutableNoteArray insertObject:textstring atIndex:0];
             [[NSUserDefaults standardUserDefaults] setObject:mutableNoteArray forKey:_fileName];
             
         }
